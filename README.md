@@ -1,5 +1,7 @@
 # Reconstruction-of-3D-CT-Volume-from-2D-X-ray-Images-using-Deep-Learning
 
+#Preprocessing
+
 Virtual environment:
 
 Create conda virtual environment:
@@ -7,6 +9,48 @@ Create conda virtual environment:
 	conda create --name Xray2CT python=3.10.10
 	conda activate Xray2CT
  	pip install -r requirements.txt
+
+Format dataset to use data_generation.py:
+
+ 	LIDC-IDRI
+  	---------patients_1
+   	------------------- 1-001.dcm
+    	------------------- 1-002.dcm
+     	------------------- 1-003.dcm
+      	------------------- 1-004.dcm
+       	.............................
+	------------------- 1-xxx.dcm
+ 	---------patients_2
+     	------------------- 1-001.dcm
+    	------------------- 1-002.dcm
+     	------------------- 1-003.dcm
+      	------------------- 1-004.dcm
+       	.............................
+	------------------- 1-xxx.dcm
+ 
+Using create_suitable_LIDC_IDRI.py in preprocessing to own these format dataset. A folder is considered to satisfy is a folder has more than 256 file dicom which has size >= 524288
+
+Using filter_dicom_file.py to filter out satisfactory files
+
+Using divide_dataset.py to divide dataset to 3 sets: train, val, app
+
+Using jpg2npy.py to convert jpg to npy for custom dataset
+
+Using make_mydataset.py to make custom dataset
+
+Using resize_npy to resize file .npy
+
+Using check_size_input.py to see size of files in input
+
+	check_3_dimensional to see size of frontal, top, lat and target 
+ 	check_shape to see an exactly shape file 
+  	check_size_target to see size of target before training dataset
+
+Using create config_file_create.py to create file config or using pylidc.conf
+
+Using visualize_dataset.ipynb to see target and drr images when convert to npy
+
+# Describe
 
 The network inputs a 2D X-ray/DRR Image from 1/2/3 different views (Frontal/Frontal+Lateral/Frontal+Lateral+Top) and outputs a 3D CT Volume.
 
