@@ -9,13 +9,14 @@ import psutil
 
 
 num_cpus = psutil.cpu_count(logical=False)
-ray.init(num_cpus=num_cpus)
+print(f"Number of cpu are: {num_cpus}")
+ray.init(num_cpus = 2, local_mode = True)
 
 # dataset paths
 
-train = "/home/daisylabs/aritra_project/dataset/train"
-val = "/home/daisylabs/aritra_project/dataset/val"
-app = "/home/daisylabs/aritra_project/dataset/app"
+train = "/teamspace/studios/this_studio/Reconstruction-of-3D-CT-Volume-from-2D-X-ray-Images-using-Deep-Learning/my_dts_asfloat32/train"
+val = "/teamspace/studios/this_studio/Reconstruction-of-3D-CT-Volume-from-2D-X-ray-Images-using-Deep-Learning/my_dts_asfloat32/val"
+app = "/teamspace/studios/this_studio/Reconstruction-of-3D-CT-Volume-from-2D-X-ray-Images-using-Deep-Learning/my_dts_asfloat32/app"
 
 
 class ImageData(Dataset):
@@ -29,8 +30,7 @@ class ImageData(Dataset):
             A.HorizontalFlip(always_apply=False, p=0.2),
             A.VerticalFlip(always_apply=False, p=0.2),
             A.ElasticTransform(alpha=1, sigma=50, alpha_affine=50, interpolation=1, border_mode=4, always_apply=False, p=0.5),
-            A.RandomBrightness(limit=0.2, always_apply=False, p=0.2),
-            A.RandomContrast(limit=0.2, always_apply=False, p=0.2),
+            A.RandomBrightnessContrast(brightness_limit=0.2, contrast_limit=0.2, always_apply=False, p=0.2),
             A.MedianBlur(blur_limit=5, always_apply=False, p=0.2),
             A.GaussNoise(var_limit=(10, 50), always_apply=False, p=0.2),
             A.Resize(256, 256),
@@ -113,8 +113,7 @@ def loaders(batch_size, phase):
         dataset,
         batch_size=batch_size,
         shuffle=True,
-        num_workers=8
+        num_workers=0
     )
 
     return loader
-
