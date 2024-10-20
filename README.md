@@ -1,6 +1,12 @@
 # Reconstruction-of-3D-CT-Volume-from-2D-X-ray-Images-using-Deep-Learning
 
-Requirements.txt used for python version 3.10.10
+Virtual environment:
+
+Create conda virtual environment:
+
+	conda create --name Xray2CT python=3.10.10
+	conda activate Xray2CT
+ 	pip install -r requirements.txt
 
 The network inputs a 2D X-ray/DRR Image from 1/2/3 different views (Frontal/Frontal+Lateral/Frontal+Lateral+Top) and outputs a 3D CT Volume.
 
