@@ -1,6 +1,6 @@
 # Reconstruction-of-3D-CT-Volume-from-2D-X-ray-Images-using-Deep-Learning
 
-#Preprocessing
+# Preprocessing
 
 Virtual environment:
 
