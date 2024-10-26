@@ -13,14 +13,14 @@ def my_app():
 
     #output.load_state_dict(torch.load('/home/daisylabs/aritra_project/results/output.pth'))
 
-    output.load_state_dict(torch.load('/home/daisylabs/aritra_project/results/output_best.pth'))
+    output.load_state_dict(torch.load('/teamspace/studios/this_studio/Reconstruction-of-3D-CT-Volume-from-2D-X-ray-Images-using-Deep-Learning/aritra_project/my_results/output_best.pth'))
 
     output.eval()
 
     with torch.set_grad_enabled(False):
         for u, (inputs, targets) in enumerate(loader_ap):
             if (u == 0):
-                inputs = inputs.reshape((batch_size_app, 3, 256, 256))
+                inputs = inputs.reshape((batch_size_app, 1, 256, 256)).repeat(1,3,1,1)
                 targets = targets.reshape((batch_size_app, 256, 256, 256))
 
                 out_1, out_2 = output(inputs)
@@ -44,8 +44,9 @@ def my_app():
                     plt.title('Reconstructed Slice')
                     plt.imshow(out_1_1, cmap=plt.get_cmap('gray'), vmin=0, vmax=1)
 
-                    plt.savefig('/home/daisylabs/aritra_project/results/slices/%d.png' % (
+                    plt.savefig('/teamspace/studios/this_studio/Reconstruction-of-3D-CT-Volume-from-2D-X-ray-Images-using-Deep-Learning/aritra_project/my_results/%d.png' % (
                     slice_number + 1,))
 
             else:
                 break
+my_app()
