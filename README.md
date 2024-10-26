@@ -50,6 +50,7 @@ Using create config_file_create.py to create file config or using pylidc.conf
 
 Using visualize_dataset.ipynb to see target and drr images when convert to npy
 
+data: [https://drive.google.com/file/d/16NszSfoCyyHVtATWqKwAn_TyxvlDlixx/view?usp=drive_link](url link)
 # Describe
 
 The network inputs a 2D X-ray/DRR Image from 1/2/3 different views (Frontal/Frontal+Lateral/Frontal+Lateral+Top) and outputs a 3D CT Volume.
