@@ -10,13 +10,13 @@ import psutil
 
 num_cpus = psutil.cpu_count(logical=False)
 print(f"Number of cpu are: {num_cpus}")
-ray.init(num_cpus = 2, local_mode = True)
+ray.init(num_cpus = num_cpus, local_mode = True)
 
 # dataset paths
 
-train = "/teamspace/studios/this_studio/Reconstruction-of-3D-CT-Volume-from-2D-X-ray-Images-using-Deep-Learning/my_dts_asfloat32/train"
-val = "/teamspace/studios/this_studio/Reconstruction-of-3D-CT-Volume-from-2D-X-ray-Images-using-Deep-Learning/my_dts_asfloat32/val"
-app = "/teamspace/studios/this_studio/Reconstruction-of-3D-CT-Volume-from-2D-X-ray-Images-using-Deep-Learning/my_dts_asfloat32/app"
+train = "/teamspace/studios/this_studio/mydataset_is_divised/train"
+val = "/teamspace/studios/this_studio/mydataset_is_divised/val"
+app = "/teamspace/studios/this_studio/mydataset_is_divised/app"
 
 
 class ImageData(Dataset):
@@ -74,18 +74,18 @@ class ImageData(Dataset):
             inputs = []
 
             inputs_front = np.load(os.path.join(self.root, self.folder[index], patient_list[1]))
-            inputs_lat = np.load(os.path.join(self.root, self.folder[index], patient_list[2]))
-            inputs_top = np.load(os.path.join(self.root, self.folder[index], patient_list[3]))
+            # inputs_lat = np.load(os.path.join(self.root, self.folder[index], patient_list[2]))
+            # inputs_top = np.load(os.path.join(self.root, self.folder[index], patient_list[3]))
             targets = np.load(os.path.join(self.root, self.folder[index], patient_list[0]))
 
             inputs_front = inputs_front.astype('float32')
-            inputs_lat = inputs_lat.astype('float32')
-            inputs_top = inputs_top.astype('float32')
+            # inputs_lat = inputs_lat.astype('float32')
+            # inputs_top = inputs_top.astype('float32')
             targets = targets.astype('float32')
 
             inputs.append(inputs_front)
-            inputs.append(inputs_lat)
-            inputs.append(inputs_top)
+            # inputs.append(inputs_lat)
+            # inputs.append(inputs_top)
 
             inputs = np.array(inputs)
 
