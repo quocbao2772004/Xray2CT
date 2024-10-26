@@ -20,7 +20,7 @@ def my_eval(output, loader_vl, no_of_batches_1, no_of_epochs, epoch):
 
             batch_length = len(inputs)
 
-            inputs = inputs.reshape((batch_length, 3, 256, 256))
+            inputs = inputs.reshape((batch_length, 1, 256, 256)).repeat(1, 3, 1, 1)
             targets = targets.reshape((batch_length, 256, 256, 256))
 
             out_1, out_2 = output(inputs)
@@ -57,4 +57,3 @@ def my_eval(output, loader_vl, no_of_batches_1, no_of_epochs, epoch):
     torch.cuda.empty_cache()
 
     return running_val_loss, running_val_metric, running_val_metric1
-
