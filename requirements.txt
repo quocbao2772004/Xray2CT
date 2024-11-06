@@ -1,3 +1,5 @@
 numpy == 1.25.0
 scipy == 1.11.1
 ray == 2.3.0
+albumentations == 1.1.0
+numba
