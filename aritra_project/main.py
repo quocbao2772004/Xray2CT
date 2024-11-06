@@ -7,12 +7,17 @@ from visualize import my_vis
 from app import my_app
 import numpy as np
 import ray
-
+import sys, os
+import torch
+fo = open("/teamspace/studios/this_studio/Reconstruction-of-3D-CT-Volume-from-2D-X-ray-Images-using-Deep-Learning/aritra_project/log.txt","w", encoding="utf-8")
+sys.stdout = fo
+print("data_loading:")
 #data loading
 batch_size = 2
 loader_tr = loaders(batch_size, 0)
 loader_vl = loaders(batch_size, 1)
-
+print(f"loader_tr: {loader_tr}")
+print(f"loader_vl: {loader_vl}")
 #networks
 
 output = UNet()
@@ -21,74 +26,112 @@ output.cuda()
 
 #optimizer
 
-optimizer = optim.Adam(output.parameters(), lr=.00003, weight_decay=1e-4)
+optimizer = optim.Adam(output.parameters(), lr=0.00003, weight_decay=1e-4)
 
 #training
 
-metric_values, metric1_values, val_metric_values, val_metric1_values, epoch_values, loss_values, val_loss_values  = ([] for i in range(7))
+
 
 no_of_epochs = 1000
 no_of_batches = len(loader_tr)
 no_of_batches_1 = len(loader_vl)
 best_metric = 0
+# Define save_checkpoint function
+def save_checkpoint(model, optimizer, epoch, loss, filename='/teamspace/studios/this_studio/model/checkpoint.pth'):
+    checkpoint = {
+        'epoch': epoch,
+        'model_state_dict': model.state_dict(),
+        'optimizer_state_dict': optimizer.state_dict(),
+        'loss': loss,
+    }
+    torch.save(checkpoint, filename)
+    print(f"Checkpoint saved at epoch {epoch}")
+# Hàm load checkpoint
+def load_checkpoint(filepath, model, optimizer):
+    checkpoint = torch.load(filepath)
+    model.load_state_dict(checkpoint['model_state_dict'])
+    optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+    start_epoch = checkpoint['epoch'] + 1  # Bắt đầu từ epoch tiếp theo
+    best_metric = checkpoint['best_metric']
+    return start_epoch, best_metric
 
-for epoch in range(no_of_epochs):
-    epoch_loss, epoch_acc, epoch_acc1 = my_train(output, optimizer, loader_tr, no_of_batches,
-                                                 no_of_epochs, epoch)
-
-    running_val_loss, running_val_metric, running_val_metric1 = my_eval(output, loader_vl,
-                                                                        no_of_batches_1, no_of_epochs, epoch)
-
-    print('epoch', epoch + 1, 'of', no_of_epochs, '-', 'train loss', ':',
-          "%.3f" % round((epoch_loss), 3), '-', 'train PSNR(dB)', ':', "%.3f" % round((epoch_acc), 3), '-',
-          'train SSIM', ':',
-          "%.3f" % round((epoch_acc1), 3), '-', 'val loss', ':', "%.3f" % round((running_val_loss), 3), '-',
-          'val PSNR(dB)', ':',
-          "%.3f" % round((running_val_metric), 3), '-', 'val SSIM', ':',
-          "%.3f" % round((running_val_metric1), 3))
-
-    metric_values.append(round(epoch_acc, 3))
-    val_metric_values.append(round(running_val_metric, 3))
-
-    loss_values.append(round(epoch_loss, 3))
-    val_loss_values.append(round(running_val_loss, 3))
-
-    metric1_values.append(round(epoch_acc1, 3))
-    val_metric1_values.append(round(running_val_metric1, 3))
-
-    current_metric = round(running_val_metric1, 3)
-
-    if(current_metric>best_metric):
-        best_metric_coeff = 1
-        best_metric = current_metric
+def main():
+    
+    checkpoint_path = "/teamspace/studios/this_studio/model/checkpoint.pth"
+    start_epoch = 0
+    best_metric = 0
+    if os.path.exists(checkpoint_path):
+        # Tải checkpoint và tiếp tục huấn luyện
+        start_epoch, best_metric = load_checkpoint(checkpoint_path, output, optimizer)
+        print(f"Đã tải checkpoint từ epoch {start_epoch}, best_metric = {best_metric}")
     else:
-        best_metric_coeff = 0
+        print("Không có checkpoint nào. Bắt đầu huấn luyện từ đầu.")
 
-    epoch_values.append(epoch + 1)
+    metric_values, metric1_values, val_metric_values, val_metric1_values, epoch_values, loss_values, val_loss_values  = ([] for i in range(7))
+    
+    print("Preparing to loop")
+    for epoch in range(no_of_epochs):
+        print(f"epoch {epoch} starting to my_train")
+        epoch_loss, epoch_acc, epoch_acc1 = my_train(output, optimizer, loader_tr, no_of_batches,
+                                                    no_of_epochs, epoch)
+        print(f"Ending epoch {epoch} of my_train")
+        print("Starting to my_eval")
+        running_val_loss, running_val_metric, running_val_metric1 = my_eval(output, loader_vl,
+                                                                            no_of_batches_1, no_of_epochs, epoch)
 
-    my_vis(epoch_values, loss_values, val_loss_values, metric_values, val_metric_values, metric1_values,
-           val_metric1_values, output, best_metric_coeff)
+        print('epoch', epoch + 1, 'of', no_of_epochs, '-', 'train loss', ':',
+            "%.3f" % round((epoch_loss), 3), '-', 'train PSNR(dB)', ':', "%.3f" % round((epoch_acc), 3), '-',
+            'train SSIM', ':',
+            "%.3f" % round((epoch_acc1), 3), '-', 'val loss', ':', "%.3f" % round((running_val_loss), 3), '-',
+            'val PSNR(dB)', ':',
+            "%.3f" % round((running_val_metric), 3), '-', 'val SSIM', ':',
+            "%.3f" % round((running_val_metric1), 3))
+        print("Ending to my_eval")
+        metric_values.append(round(epoch_acc, 3))
+        val_metric_values.append(round(running_val_metric, 3))
 
-    vmv = np.amax(np.asarray(val_metric_values))
-    vm1v = np.amax(np.asarray(val_metric1_values))
-    vlv = np.amin(np.asarray(val_loss_values))
+        loss_values.append(round(epoch_loss, 3))
+        val_loss_values.append(round(running_val_loss, 3))
 
-    print('Maximum Validation PSNR(dB)', ':', "%.3f" % vmv)
-    print('Maximum Validation SSIM', ':', "%.3f" % vm1v)
-    print('Minimum Validation Loss', ':', "%.3f" % vlv)
+        metric1_values.append(round(epoch_acc1, 3))
+        val_metric1_values.append(round(running_val_metric1, 3))
+        save_checkpoint(output, optimizer, epoch, epoch_loss)
+        current_metric = round(running_val_metric1, 3)
 
-    np.save('/home/daisylabs/aritra_project/results/val_psnr_values.npy', val_metric_values)
-    np.save('/home/daisylabs/aritra_project/results/val_ssim_values.npy', val_metric1_values)
-    np.save('/home/daisylabs/aritra_project/results/val_loss_values.npy', val_loss_values)
+        if(current_metric>best_metric):
+            best_metric_coeff = 1
+            best_metric = current_metric
+        else:
+            best_metric_coeff = 0
 
-    np.save('/home/daisylabs/aritra_project/results/psnr_values.npy', metric_values)
-    np.save('/home/daisylabs/aritra_project/results/ssim_values.npy', metric1_values)
-    np.save('/home/daisylabs/aritra_project/results/loss_values.npy', loss_values)
+        epoch_values.append(epoch + 1)
+
+        my_vis(epoch_values, loss_values, val_loss_values, metric_values, val_metric_values, metric1_values,
+            val_metric1_values, output, best_metric_coeff)
+
+        vmv = np.amax(np.asarray(val_metric_values))
+        vm1v = np.amax(np.asarray(val_metric1_values))
+        vlv = np.amin(np.asarray(val_loss_values))
+
+        print('Maximum Validation PSNR(dB)', ':', "%.3f" % vmv)
+        print('Maximum Validation SSIM', ':', "%.3f" % vm1v)
+        print('Minimum Validation Loss', ':', "%.3f" % vlv)
+
+        np.save('/teamspace/studios/this_studio/Reconstruction-of-3D-CT-Volume-from-2D-X-ray-Images-using-Deep-Learning/aritra_project/my_dataset_results/val_psnr_values.npy', val_metric_values)
+        np.save('/teamspace/studios/this_studio/Reconstruction-of-3D-CT-Volume-from-2D-X-ray-Images-using-Deep-Learning/aritra_project/my_dataset_results/val_ssim_values.npy', val_metric1_values)
+        np.save('/teamspace/studios/this_studio/Reconstruction-of-3D-CT-Volume-from-2D-X-ray-Images-using-Deep-Learning/aritra_project/my_dataset_results/val_loss_values.npy', val_loss_values)
+
+        np.save('/teamspace/studios/this_studio/Reconstruction-of-3D-CT-Volume-from-2D-X-ray-Images-using-Deep-Learning/aritra_project/my_dataset_results/psnr_values.npy', metric_values)
+        np.save('/teamspace/studios/this_studio/Reconstruction-of-3D-CT-Volume-from-2D-X-ray-Images-using-Deep-Learning/aritra_project/my_dataset_results/ssim_values.npy', metric1_values)
+        np.save('/teamspace/studios/this_studio/Reconstruction-of-3D-CT-Volume-from-2D-X-ray-Images-using-Deep-Learning/aritra_project/my_dataset_results/loss_values.npy', loss_values)
 
 
-ray.shutdow()
-print('Finished Training')
+    ray.shutdown()
+    print('Finished Training')
+    fo.close()
+    #app
 
-#app
+    my_app()
 
-my_app()
+if __name__ == "__main__":
+    main()
